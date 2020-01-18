@@ -74,12 +74,24 @@ function ptqrc_show_settings()
     add_settings_field("ptqrc_width", __("QR Code Width", "qr-post"), 'ptqrc_set_width', "general", "ptqrc_settings_section");
     add_settings_field("ptqrc_country", __("Select coutries to show QR Code", "qr-post"), "ptqrc_select_country", "general", "ptqrc_settings_section");
     add_settings_field("ptqrc_country_array", __("Select all coutries to make QR Code available", "qr-post"), "ptqrc_checkbox_country", "general", "ptqrc_settings_section");
+    add_settings_field("ptqrc_mini_toggle", __("Toggle button to turn on/off QR Code", "qr-post"), "ptqrc_toggle", "general", "ptqrc_settings_section");
 
 
+    register_setting("general", "ptqrc_mini_toggle");
     register_setting("general", "ptqrc_country_array");
     register_setting("general", "ptqrc_country", array("sanitize_callback" => "esc_attr"));
     register_setting("general", "ptqrc_height", array("sanitize_callback" => "esc_attr"));
     register_setting("general", "ptqrc_width", array("sanitize_callback" => "esc_attr"));
+}
+
+
+function ptqrc_toggle()
+{
+
+    $toggle_value = get_option("ptqrc_mini_toggle");
+    $toggle_value = $toggle_value ? $toggle_value : 0;
+    echo "<div id='toggle_button'></div>";
+    echo "<input type='hidden' id='ptqrc_mini_toggle' name='ptqrc_mini_toggle' value='" . $toggle_value . "'/>";
 }
 
 
@@ -127,7 +139,17 @@ function ptqrc_set_width()
     $current_width = get_option("ptqrc_width");
     printf("<input type='number' name='%s' value='%s' id='%s' />", "ptqrc_width", $current_width, "ptqrc_width");
 }
-
-
-
 add_action("admin_init", "ptqrc_show_settings");
+
+
+
+function ptqrc_add_script($current_screen)
+{
+    if ('options-general.php' == $current_screen) {
+        wp_enqueue_style('pqrc-minitoggle-css', plugin_dir_url(__FILE__) . "assets/css/minitoggle.css");
+        wp_enqueue_script('pqrc-minitoggle-js', plugin_dir_url(__FILE__) . "assets/js/minitoggle.js", array('jquery'), "1.0", true);
+        wp_enqueue_script('pqrc-main-js', plugin_dir_url(__FILE__) . "assets/js/ptqrc-main.js", array('jquery'), "1.0", true);
+    }
+}
+
+add_action("admin_enqueue_scripts", "ptqrc_add_script");
