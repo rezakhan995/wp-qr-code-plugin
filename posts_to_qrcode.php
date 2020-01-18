@@ -12,6 +12,23 @@ Domain Path: /languages/
 */
 
 
+$ptqrc_countries = array(
+    "Bangladesh",
+    "India",
+    "Pakinstan",
+    "Myanmar",
+    "Nepal",
+    "Srilanka"
+);
+
+
+function ptqrc_update_countries()
+{
+    global $ptqrc_countries;
+    $ptqrc_countries = apply_filters("ptqrc_updated_countries", $ptqrc_countries);
+}
+add_action("admin_init", "ptqrc_update_countries");
+
 function ptqrc_load_testdomain()
 {
     load_plugin_textdomain("qr-post", false, dirname(__FILE__) . "/languages");
@@ -56,29 +73,35 @@ function ptqrc_show_settings()
     add_settings_field("ptqrc_height", __("QR Code Height", "qr-post"), 'ptqrc_set_height', "general", "ptqrc_settings_section");
     add_settings_field("ptqrc_width", __("QR Code Width", "qr-post"), 'ptqrc_set_width', "general", "ptqrc_settings_section");
     add_settings_field("ptqrc_country", __("Select coutries to show QR Code", "qr-post"), "ptqrc_select_country", "general", "ptqrc_settings_section");
+    add_settings_field("ptqrc_country_array", __("Select all coutries to make QR Code available", "qr-post"), "ptqrc_checkbox_country", "general", "ptqrc_settings_section");
 
 
-
+    register_setting("general", "ptqrc_country_array");
     register_setting("general", "ptqrc_country", array("sanitize_callback" => "esc_attr"));
     register_setting("general", "ptqrc_height", array("sanitize_callback" => "esc_attr"));
     register_setting("general", "ptqrc_width", array("sanitize_callback" => "esc_attr"));
 }
 
+
+function ptqrc_checkbox_country()
+{
+    $country = get_option("ptqrc_country_array");
+    global $ptqrc_countries;
+    foreach ($ptqrc_countries as $single_country) {
+        $check = "";
+        if (is_array($country) && in_array($single_country, $country)) {
+            $check = "checked";
+        }
+        printf("<input type='checkbox' name='%s[]' value='%s' %s />%s <br>", "ptqrc_country_array", $single_country, $check, $single_country);
+    }
+}
 function ptqrc_select_country()
 {
 
     $country = get_option("ptqrc_country");
-    $countries = array(
-        "None",
-        "Bangladesh",
-        "India",
-        "Pakinstan",
-        "Myanmar",
-        "Nepal",
-        "Srilanka"
-    );
+    global $ptqrc_countries;
     printf("<select name='%s' id='%s'>", "ptqrc_country", "ptqrc_country");
-    foreach ($countries as $single_country) {
+    foreach ($ptqrc_countries as $single_country) {
         $select = "";
         if ($country == $single_country) {
             $select = "selected";
