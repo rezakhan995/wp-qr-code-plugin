@@ -32,7 +32,13 @@ function ptqrc_display_qrcode($content)
         return $content;
     }
 
-    $dimension = apply_filters("ptqrc_get_dimension", "150x150");
+
+    $current_height = get_option("ptqrc_height");
+    $current_height = $current_height ? $current_height : 150;
+    $current_width = get_option("ptqrc_width");
+    $current_width = $current_width ? $current_width : 150;
+
+    $dimension = apply_filters("ptqrc_get_dimension", "{$current_width}x{$current_height}");
 
     $qrcode_source = sprintf("https://api.qrserver.com/v1/create-qr-code/?size=%s&data=%s", $dimension, $current_post_permalink);
     $content .= sprintf("<img src='%s' alter='%s'/>", $qrcode_source, $current_post_title);
@@ -40,3 +46,28 @@ function ptqrc_display_qrcode($content)
 }
 
 add_filter("the_content", "ptqrc_display_qrcode", 99);
+
+
+function ptqrc_show_settings()
+{
+    add_settings_field("ptqrc_height", __("QR Code Height", "qr-post"), 'ptqrc_set_height', "general");
+    add_settings_field("ptqrc_width", __("QR Code Width", "qr-post"), 'ptqrc_set_width', "general");
+    register_setting("general", "ptqrc_height", array("sanitize_callback" => "esc_attr"));
+    register_setting("general", "ptqrc_width", array("sanitize_callback" => "esc_attr"));
+}
+
+function ptqrc_set_height()
+{
+    $current_height = get_option("ptqrc_height");
+    printf("<input type='number' name='%s' value='%s' id='%s' />", "ptqrc_height", $current_height, "ptqrc_height");
+}
+
+function ptqrc_set_width()
+{
+    $current_width = get_option("ptqrc_width");
+    printf("<input type='number' name='%s' value='%s' id='%s' />", "ptqrc_width", $current_width, "ptqrc_width");
+}
+
+
+
+add_action("admin_init", "ptqrc_show_settings");
